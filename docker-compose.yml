@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+
+  eureka:
+    image: ngolik/eureka
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    image: ngolik/api-gateway
+    ports:
+      - "8080:8080"
+    links:
+      - eureka
+    depends_on:
+      - eureka
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+
+  auth-postgres:
+    image: postgres
+    container_name: auth-service-db
+    hostname: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5433:5432"
+
+  auth-service:
+    image: ngolik/auth-service
+    container_name: auth-service
+    depends_on:
+      - eureka
+      - api-gateway
+      - auth-postgres
+    env_file:
+      - .env
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/postgres
+
+  cashflow-postgres:
+    image: postgres
+    container_name: cashflow-service-db
+    hostname: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+
+  expense-service:
+    image: ngolik/expense-service
+    container_name: expense-service
+    depends_on:
+      - eureka
+      - api-gateway
+      - cashflow-postgres
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/postgres
