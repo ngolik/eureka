@@ -8,6 +8,9 @@ Eureka is a service registry used in a microservices architecture to enable serv
 
 ## Getting Started
 
+
+docker build . -t ngolik/eureka
+
 ### Prerequisites
 
 - Java Development Kit (JDK) installed
